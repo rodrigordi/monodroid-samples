@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Android;
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Gms.Common;
 using Android.Gms.Location;
@@ -14,29 +15,26 @@ using Android.Support.V7.App;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using Xamarin.Essentials;
 
 namespace com.xamarin.samples.location.fusedlocationprovider
 {
     [Activity(Label = "@string/app_name", MainLauncher = true)]
     public class MainActivity : AppCompatActivity
     {
-        const long ONE_MINUTE = 60 * 1000;
-        const long FIVE_MINUTES = 5 * ONE_MINUTE;
-        const long TWO_MINUTES = 2 * ONE_MINUTE;
+
 
         static readonly int RC_LAST_LOCATION_PERMISSION_CHECK = 1000;
         static readonly int RC_LOCATION_UPDATES_PERMISSION_CHECK = 1100;
 
-        static readonly string KEY_REQUESTING_LOCATION_UPDATES = "requesting_location_updates";
+        //static readonly string KEY_REQUESTING_LOCATION_UPDATES = "requesting_location_updates";
 
-        FusedLocationProviderClient fusedLocationProviderClient;
+
         Button getLastLocationButton;
         bool isGooglePlayServicesInstalled;
-        bool isRequestingLocationUpdates;
+        //bool isRequestingLocationUpdates;
         TextView latitude;
         internal TextView latitude2;
-        LocationCallback locationCallback;
-        LocationRequest locationRequest;
         TextView longitude;
         internal TextView longitude2;
         TextView provider;
@@ -46,7 +44,20 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
         View rootLayout;
 
-        public override async void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+
+
+        Button stopServiceButton;
+        Button startServiceButton;
+        Intent startServiceIntent;
+        Intent stopServiceIntent;
+        bool isStarted = false;
+
+
+
+
+
+
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
             if (requestCode == RC_LAST_LOCATION_PERMISSION_CHECK || requestCode == RC_LOCATION_UPDATES_PERMISSION_CHECK)
             {
@@ -54,12 +65,12 @@ namespace com.xamarin.samples.location.fusedlocationprovider
                 {
                     if (requestCode == RC_LAST_LOCATION_PERMISSION_CHECK)
                     {
-                        await GetLastLocationFromDevice();
+                        //await GetLastLocationFromDevice();
                     }
                     else
                     {
-                        await StartRequestingLocationUpdates();
-                        isRequestingLocationUpdates = true;
+                        //await StartRequestingLocationUpdates();
+                        //isRequestingLocationUpdates = true;
                     }
                 }
                 else
@@ -83,18 +94,45 @@ namespace com.xamarin.samples.location.fusedlocationprovider
         {
             base.OnCreate(bundle);
 
-            if (bundle != null)
+            // Set our view from the "main" layout resource
+            SetContentView(Resource.Layout.Main);
+
+            //if (bundle != null)
+            //{
+            //    isRequestingLocationUpdates = bundle.KeySet().Contains(KEY_REQUESTING_LOCATION_UPDATES) &&
+            //                                  bundle.GetBoolean(KEY_REQUESTING_LOCATION_UPDATES);
+            //}
+            //else
+            //{
+            //    isRequestingLocationUpdates = false;
+            //}
+
+            //Preferences.Set("LOG", "");
+
+            startServiceIntent = new Intent(this, typeof(BackgroundService));
+            startServiceIntent.SetAction(Constants.ACTION_START_SERVICE);
+
+            stopServiceIntent = new Intent(this, typeof(BackgroundService));
+            stopServiceIntent.SetAction(Constants.ACTION_STOP_SERVICE);
+
+            stopServiceButton = FindViewById<Button>(Resource.Id.stop_timestamp_service_button);
+            startServiceButton = FindViewById<Button>(Resource.Id.start_timestamp_service_button);
+            if (isStarted)
             {
-                isRequestingLocationUpdates = bundle.KeySet().Contains(KEY_REQUESTING_LOCATION_UPDATES) &&
-                                              bundle.GetBoolean(KEY_REQUESTING_LOCATION_UPDATES);
+                stopServiceButton.Click += StopServiceButton_Click;
+                stopServiceButton.Enabled = true;
+                startServiceButton.Enabled = false;
             }
             else
             {
-                isRequestingLocationUpdates = false;
+                startServiceButton.Click += StartServiceButton_Click;
+                startServiceButton.Enabled = true;
+                stopServiceButton.Enabled = false;
             }
 
-            // Set our view from the "main" layout resource
-            SetContentView(Resource.Layout.Main);
+
+
+
             isGooglePlayServicesInstalled = IsGooglePlayServicesInstalled();
             rootLayout = FindViewById(Resource.Id.root_layout);
 
@@ -112,15 +150,10 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
             if (isGooglePlayServicesInstalled)
             {
-                locationRequest = new LocationRequest()
-                                  .SetPriority(LocationRequest.PriorityHighAccuracy)
-                                  .SetInterval(FIVE_MINUTES)
-                                  .SetFastestInterval(TWO_MINUTES);
-                locationCallback = new FusedLocationProviderCallback(this);
-
-                fusedLocationProviderClient = LocationServices.GetFusedLocationProviderClient(this);
-                getLastLocationButton.Click += GetLastLocationButtonOnClick;
-                requestLocationUpdatesButton.Click += RequestLocationUpdatesButtonOnClick;
+                if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted)
+                {
+                    RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
+                }
             }
             else
             {
@@ -129,61 +162,92 @@ namespace com.xamarin.samples.location.fusedlocationprovider
                         .SetAction(Resource.String.ok, delegate { FinishAndRemoveTask(); })
                         .Show();
             }
+
+
+            var x = Preferences.Get("LOG", "");
+            provider.Text = x;
         }
 
-        async void RequestLocationUpdatesButtonOnClick(object sender, EventArgs eventArgs)
+        void StopServiceButton_Click(object sender, System.EventArgs e)
         {
-            // No need to request location updates if we're already doing so.
-            if (isRequestingLocationUpdates)
-            {
-                StopRequestLocationUpdates();
-                isRequestingLocationUpdates = false;
-            }
-            else
-            {
-                if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) == Permission.Granted)
-                {
-                    await StartRequestingLocationUpdates();
-                    isRequestingLocationUpdates = true;
-                }
-                else
-                {
-                    RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
-                }
-            }
+            stopServiceButton.Click -= StopServiceButton_Click;
+            stopServiceButton.Enabled = false;
+
+            StopService(stopServiceIntent);
+            isStarted = false;
+
+            startServiceButton.Click += StartServiceButton_Click;
+            startServiceButton.Enabled = true;
         }
 
-        async void GetLastLocationButtonOnClick(object sender, EventArgs eventArgs)
+        void StartServiceButton_Click(object sender, System.EventArgs e)
         {
-            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) == Permission.Granted)
-            {
-                await GetLastLocationFromDevice();
-            }
-            else
-            {
-                RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
-            }
+            startServiceButton.Enabled = false;
+            startServiceButton.Click -= StartServiceButton_Click;
+
+            StartService(startServiceIntent);
+
+            isStarted = true;
+            stopServiceButton.Click += StopServiceButton_Click;
+
+            stopServiceButton.Enabled = true;
         }
 
-        async Task GetLastLocationFromDevice()
-        {
-            getLastLocationButton.SetText(Resource.String.getting_last_location);
-            var location = await fusedLocationProviderClient.GetLastLocationAsync();
 
-            if (location == null)
-            {
-                latitude.SetText(Resource.String.location_unavailable);
-                longitude.SetText(Resource.String.location_unavailable);
-                provider.SetText(Resource.String.could_not_get_last_location);
-            }
-            else
-            {
-                latitude.Text = Resources.GetString(Resource.String.latitude_string, location.Latitude);
-                longitude.Text = Resources.GetString(Resource.String.longitude_string, location.Longitude);
-                provider.Text = Resources.GetString(Resource.String.provider_string, location.Provider);
-                getLastLocationButton.SetText(Resource.String.get_last_location_button_text);
-            }
-        }
+
+        //async void RequestLocationUpdatesButtonOnClick(object sender, EventArgs eventArgs)
+        //{
+        //    // No need to request location updates if we're already doing so.
+        //    if (isRequestingLocationUpdates)
+        //    {
+        //        StopRequestLocationUpdates();
+        //        isRequestingLocationUpdates = false;
+        //    }
+        //    else
+        //    {
+        //        if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) == Permission.Granted)
+        //        {
+        //            await StartRequestingLocationUpdates();
+        //            isRequestingLocationUpdates = true;
+        //        }
+        //        else
+        //        {
+        //            RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
+        //        }
+        //    }
+        //}
+
+        //async void GetLastLocationButtonOnClick(object sender, EventArgs eventArgs)
+        //{
+        //    if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) == Permission.Granted)
+        //    {
+        //        await GetLastLocationFromDevice();
+        //    }
+        //    else
+        //    {
+        //        RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
+        //    }
+        //}
+
+        //async Task GetLastLocationFromDevice()
+        //{
+        //    getLastLocationButton.SetText(Resource.String.getting_last_location);
+        //    var location = await fusedLocationProviderClient.GetLastLocationAsync();
+
+        //    if (location == null)
+        //    {
+        //        latitude.SetText(Resource.String.location_unavailable);
+        //        longitude.SetText(Resource.String.location_unavailable);
+        //        provider.SetText(Resource.String.could_not_get_last_location);
+        //    }
+        //    else
+        //    {
+        //        latitude.Text = Resources.GetString(Resource.String.latitude_string, location.Latitude);
+        //        longitude.Text = Resources.GetString(Resource.String.longitude_string, location.Longitude);
+        //        provider.Text = Resources.GetString(Resource.String.provider_string, location.Provider);
+        //        getLastLocationButton.SetText(Resource.String.get_last_location_button_text);
+        //    }
+        //}
 
         void RequestLocationPermission(int requestCode)
         {
@@ -193,63 +257,59 @@ namespace com.xamarin.samples.location.fusedlocationprovider
                         .SetAction(Resource.String.ok,
                                    delegate
                                    {
-                                       ActivityCompat.RequestPermissions(this, new[] {Manifest.Permission.AccessFineLocation}, requestCode);
+                                       ActivityCompat.RequestPermissions(this, new[] { Manifest.Permission.AccessFineLocation }, requestCode);
                                    })
                         .Show();
             }
             else
             {
-                ActivityCompat.RequestPermissions(this, new[] {Manifest.Permission.AccessFineLocation}, requestCode);
+                ActivityCompat.RequestPermissions(this, new[] { Manifest.Permission.AccessFineLocation }, requestCode);
             }
         }
 
-        async Task StartRequestingLocationUpdates()
-        {
-            requestLocationUpdatesButton.SetText(Resource.String.request_location_in_progress_button_text);
-            await fusedLocationProviderClient.RequestLocationUpdatesAsync(locationRequest, locationCallback);
-        }
+        //async Task StartRequestingLocationUpdates()
+        //{
+        //    requestLocationUpdatesButton.SetText(Resource.String.request_location_in_progress_button_text);
+        //    await fusedLocationProviderClient.RequestLocationUpdatesAsync(locationRequest, locationCallback);
+        //}
 
-        async void StopRequestLocationUpdates()
-        {
-            latitude2.Text = string.Empty;
-            longitude2.Text = string.Empty;
-            provider2.Text = string.Empty;
+        //async void StopRequestLocationUpdates()
+        //{
+        //    latitude2.Text = string.Empty;
+        //    longitude2.Text = string.Empty;
+        //    provider2.Text = string.Empty;
 
-            requestLocationUpdatesButton.SetText(Resource.String.request_location_button_text);
+        //    requestLocationUpdatesButton.SetText(Resource.String.request_location_button_text);
 
-            if (isRequestingLocationUpdates)
-            {
-                await fusedLocationProviderClient.RemoveLocationUpdatesAsync(locationCallback);
-            }
-        }
+        //    if (isRequestingLocationUpdates)
+        //    {
+        //        await fusedLocationProviderClient.RemoveLocationUpdatesAsync(locationCallback);
+        //    }
+        //}
 
-        protected override void OnSaveInstanceState(Bundle outState)
-        {
-            outState.PutBoolean(KEY_REQUESTING_LOCATION_UPDATES, isRequestingLocationUpdates);
-            base.OnSaveInstanceState(outState);
-        }
+        //protected override void OnSaveInstanceState(Bundle outState)
+        //{
+        //    outState.PutBoolean(KEY_REQUESTING_LOCATION_UPDATES, isRequestingLocationUpdates);
+        //    base.OnSaveInstanceState(outState);
+        //}
 
-        protected override async void OnResume()
+        protected override void OnResume()
         {
             base.OnResume();
-            if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) == Permission.Granted)
-            {
-                if (isRequestingLocationUpdates)
-                {
-                    await StartRequestingLocationUpdates();
-                }
-            }
-            else
+            if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) != Permission.Granted)
             {
                 RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
             }
+
+            var x = Preferences.Get("LOG", "");
+            provider.Text = x;
         }
 
-        protected override void OnPause()
-        {
-            StopRequestLocationUpdates();
-            base.OnPause();
-        }
+        //protected override void OnPause()
+        //{
+        //    StopRequestLocationUpdates();
+        //    base.OnPause();
+        //}
 
         bool IsGooglePlayServicesInstalled()
         {

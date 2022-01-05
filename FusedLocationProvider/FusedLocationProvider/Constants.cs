@@ -1,5 +1,16 @@
-﻿using System;
-namespace ServicesDemo3
+﻿using Android.App;
+using Android.Content;
+using Android.Gms.Location;
+using Android.OS;
+using Android.Runtime;
+using Android.Views;
+using Android.Widget;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace com.xamarin.samples.location.fusedlocationprovider
 {
 	public static class Constants
 	{
@@ -14,4 +25,5 @@ namespace ServicesDemo3
 		public const string ACTION_RESTART_TIMER = "ServicesDemo3.action.RESTART_TIMER";
 		public const string ACTION_MAIN_ACTIVITY = "ServicesDemo3.action.MAIN_ACTIVITY";
 	}
+
 }
