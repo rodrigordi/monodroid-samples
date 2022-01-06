@@ -23,8 +23,9 @@ namespace com.xamarin.samples.location.fusedlocationprovider
     public class MainActivity : AppCompatActivity
     {
 
-
-        static readonly int RC_LAST_LOCATION_PERMISSION_CHECK = 1000;
+        //TODO : o que sao esses codigos ?
+        static readonly int RC_LAST_LOCATION_PERMISSION_CHECK = 1;
+        //static readonly int RC_LAST_LOCATION_PERMISSION_CHECK = 1000;
         static readonly int RC_LOCATION_UPDATES_PERMISSION_CHECK = 1100;
 
         //static readonly string KEY_REQUESTING_LOCATION_UPDATES = "requesting_location_updates";
@@ -150,7 +151,9 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
             if (isGooglePlayServicesInstalled)
             {
-                if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted && ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessCoarseLocation) != Permission.Granted)
+                if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessBackgroundLocation) != Permission.Granted &&
+                    ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted &&
+                    ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessCoarseLocation) != Permission.Granted)
                 {
                     RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
                 }
@@ -192,6 +195,11 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
             stopServiceButton.Enabled = true;
         }
+
+
+
+        //verificar se o servico está rodando.
+        //https://youtu.be/4_RK_5bCoOY?t=889
 
 
 
@@ -263,7 +271,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
             }
             else
             {
-                ActivityCompat.RequestPermissions(this, new[] { Manifest.Permission.AccessFineLocation }, requestCode);
+                ActivityCompat.RequestPermissions(this, new[] { Manifest.Permission.AccessFineLocation, Manifest.Permission.AccessBackgroundLocation, }, requestCode);
             }
         }
 
@@ -296,7 +304,9 @@ namespace com.xamarin.samples.location.fusedlocationprovider
         protected override void OnResume()
         {
             base.OnResume();
-            if (CheckSelfPermission(Manifest.Permission.AccessFineLocation) != Permission.Granted)
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessBackgroundLocation) != Permission.Granted &&
+                    ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted &&
+                    ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessCoarseLocation) != Permission.Granted)
             {
                 RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
             }

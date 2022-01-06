@@ -36,7 +36,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
                 Preferences.Set("LOG", $"{location.Latitude}|{location.Longitude}@{System.DateTime.Now.ToString("hh:mm:ss")};{x}");
 
 
-                System.Diagnostics.Debug.WriteLine($"{location.Latitude}|{location.Longitude}@{System.DateTime.Now.ToString("hh:mm:ss")}");
+                Log.Debug("FusedLocationProviderSample", $"{location.Latitude}|{location.Longitude}@{System.DateTime.Now.ToString("hh:mm:ss")}");
 
                 //activity.latitude2.Text = activity.Resources.GetString(Resource.String.latitude_string, location.Latitude);
                 //activity.longitude2.Text = activity.Resources.GetString(Resource.String.longitude_string, location.Longitude);
@@ -44,7 +44,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine($"No locations available.");
+                Log.Debug("FusedLocationProviderSample", $"No locations available.");
 
                 //activity.latitude2.SetText(Resource.String.location_unavailable);
                 //activity.longitude2.SetText(Resource.String.location_unavailable);

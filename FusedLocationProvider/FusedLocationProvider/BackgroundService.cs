@@ -12,10 +12,10 @@ using System.Text;
 
 namespace com.xamarin.samples.location.fusedlocationprovider
 {
-    [Service]
+    [Service(Enabled = true, Exported = false)]
     public class BackgroundService : Service
     {
-        const long ONE_MINUTE = 60 * 1000;
+        const long ONE_MINUTE = 1 * 1000;
         const long FIVE_MINUTES = 5 * ONE_MINUTE;
         const long TWO_MINUTES = 2 * ONE_MINUTE;
 
@@ -52,9 +52,11 @@ namespace com.xamarin.samples.location.fusedlocationprovider
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
 
+            //https://www.youtube.com/watch?v=4_RK_5bCoOY
+
             if (intent.Action.Equals(Constants.ACTION_START_SERVICE))
             {
-                fusedLocationProviderClient.RequestLocationUpdates(locationRequest, locationCallback, null); //checar qual looper devemos passar aqui estando dentro de um service.
+                fusedLocationProviderClient.RequestLocationUpdates(locationRequest, locationCallback, Looper.MainLooper); //checar qual looper devemos passar aqui estando dentro de um service.
 
                 if (Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
                     RegisterForegroundServiceO();
@@ -66,6 +68,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
                 fusedLocationProviderClient.RemoveLocationUpdates(locationCallback);
 
                 StopForeground(true);
+                StopSelf();
             }
 
 
@@ -91,6 +94,8 @@ namespace com.xamarin.samples.location.fusedlocationprovider
         }
 
 
+        //Verificar como criar a notificacao
+        //https://youtu.be/4_RK_5bCoOY?t=489
         void RegisterForegroundServiceO()
         {
             String NOTIFICATION_CHANNEL_ID = "com.xamarin.samples.location.fusedlocationprovider.channelid";
