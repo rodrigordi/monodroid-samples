@@ -15,7 +15,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
     [Service(Enabled = true, Exported = false)]
     public class BackgroundService : Service
     {
-        const long ONE_MINUTE = 1 * 1000;
+        const long ONE_MINUTE = 60 * 1000;
         const long FIVE_MINUTES = 5 * ONE_MINUTE;
         const long TWO_MINUTES = 2 * ONE_MINUTE;
 

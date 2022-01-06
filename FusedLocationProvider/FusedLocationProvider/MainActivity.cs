@@ -31,7 +31,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
         //static readonly string KEY_REQUESTING_LOCATION_UPDATES = "requesting_location_updates";
 
 
-        Button getLastLocationButton;
+        Button refreshlogButton;
         bool isGooglePlayServicesInstalled;
         //bool isRequestingLocationUpdates;
         TextView latitude;
@@ -118,6 +118,10 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
             stopServiceButton = FindViewById<Button>(Resource.Id.stop_timestamp_service_button);
             startServiceButton = FindViewById<Button>(Resource.Id.start_timestamp_service_button);
+            refreshlogButton= FindViewById<Button>(Resource.Id.refresh_log_button);
+
+            refreshlogButton.Click += RefreshlogButton_Click;
+
             if (isStarted)
             {
                 stopServiceButton.Click += StopServiceButton_Click;
@@ -138,7 +142,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
             rootLayout = FindViewById(Resource.Id.root_layout);
 
             // UI to display last location
-            getLastLocationButton = FindViewById<Button>(Resource.Id.get_last_location_button);
+            //getLastLocationButton = FindViewById<Button>(Resource.Id.get_last_location_button);
             latitude = FindViewById<TextView>(Resource.Id.latitude);
             longitude = FindViewById<TextView>(Resource.Id.longitude);
             provider = FindViewById<TextView>(Resource.Id.provider);
@@ -167,6 +171,12 @@ namespace com.xamarin.samples.location.fusedlocationprovider
             }
 
 
+            var x = Preferences.Get("LOG", "");
+            provider.Text = x;
+        }
+
+        private void RefreshlogButton_Click(object sender, EventArgs e)
+        {
             var x = Preferences.Get("LOG", "");
             provider.Text = x;
         }
