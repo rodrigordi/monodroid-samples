@@ -150,7 +150,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
             if (isGooglePlayServicesInstalled)
             {
-                if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted)
+                if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted && ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessCoarseLocation) != Permission.Granted)
                 {
                     RequestLocationPermission(RC_LAST_LOCATION_PERMISSION_CHECK);
                 }

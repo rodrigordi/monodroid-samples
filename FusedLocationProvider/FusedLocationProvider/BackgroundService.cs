@@ -54,7 +54,7 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
             if (intent.Action.Equals(Constants.ACTION_START_SERVICE))
             {
-                fusedLocationProviderClient.RequestLocationUpdates(locationRequest, locationCallback, null);
+                fusedLocationProviderClient.RequestLocationUpdates(locationRequest, locationCallback, null); //checar qual looper devemos passar aqui estando dentro de um service.
 
                 if (Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.O)
                     RegisterForegroundServiceO();
