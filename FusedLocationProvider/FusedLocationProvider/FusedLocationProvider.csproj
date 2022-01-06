@@ -285,7 +285,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
-    <Compile Include="BackgroundService.cs" />
+    <Compile Include="LocationManagerBackgroundService.cs" />
+    <Compile Include="GPSBackgroundService.cs" />
+    <Compile Include="FusedBackgroundService.cs" />
     <Compile Include="FusedLocationProviderCallback.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.designer.cs" />

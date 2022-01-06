@@ -110,10 +110,10 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 
             //Preferences.Set("LOG", "");
 
-            startServiceIntent = new Intent(this, typeof(BackgroundService));
+            startServiceIntent = new Intent(this, typeof(GPSBackgroundService));
             startServiceIntent.SetAction(Constants.ACTION_START_SERVICE);
 
-            stopServiceIntent = new Intent(this, typeof(BackgroundService));
+            stopServiceIntent = new Intent(this, typeof(GPSBackgroundService));
             stopServiceIntent.SetAction(Constants.ACTION_STOP_SERVICE);
 
             stopServiceButton = FindViewById<Button>(Resource.Id.stop_timestamp_service_button);

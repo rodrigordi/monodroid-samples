@@ -8,9 +8,9 @@ namespace com.xamarin.samples.location.fusedlocationprovider
 {
     public class FusedLocationProviderCallback : LocationCallback
     {
-        BackgroundService service;
+        FusedBackgroundService service;
 
-        public FusedLocationProviderCallback(BackgroundService service)
+        public FusedLocationProviderCallback(FusedBackgroundService service)
         {
             this.service = service;
         }
